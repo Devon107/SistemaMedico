@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sistemas Expertos</title>
-  <link rel="stylesheet" href="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
+  <link rel="stylesheet" href="css/foundation.min.css">
 </head>
 
 <hr>
@@ -36,28 +36,20 @@
         <div class="row column text-center">
           <p class="lead">Asignar sintomas a enfermedad</p> 
         </div>
-
-        <div class="large-12 small-centered-12 columns">
-          <p>Estado de la asignacion:</p>
-          <input type="radio" name="rbutton" value="Activo" id="rbtn1"><label for="on">Activo</label>
-          <input type="radio" name="rbutton" value="Inactivo" id="rbtn2" checked="checked"><label for="off">Inactivo</label>
-        </div>
-         <hr>
         <div class="large-6 small-centered-12 columns">
           <div>
-              <p>Buscar enfermedad:</p> 
-              <input type="search" placeholder="Buscar enfermedad">
-              <textarea name="fieldName" placeholder="Resultado de la busqueda"></textarea>
-                <a href="#" class="button" style="color:white">Aceptar</a>
-                <a href="login.html" class="button" style="color:white">Limpiar</a>
+              <p>Nombre de la enfermedad</p>  
+              <select id="enfermedades" name="enfermedades"><option value="0">Seleccione Enfermedad</option></select>
+                <a href="#" class="button" onclick="insert()" style="color:white">Aceptar</a>
+                <p id="demo" style="color: white; background-color: red;" ALIGN=center></p>
           </div>
         </div>
 
         <div class="large-6 small-centered-12 columns">
           <div>
               <p>Asignar sintoma:</p> 
-              <input type="search" placeholder="Buscar sintoma">
-              <textarea name="fieldName" placeholder="Resultado de la busqueda"></textarea>
+              <select multiple id="sintoma" name="sintoma[]"></select>
+              <p style="color: black; background-color: orange;" ALIGN=center>Hold down the Ctrl (windows) / Command (Mac) button to select multiple options.</p>
           </div>
         </div>
 
@@ -71,10 +63,82 @@
            </ul>
          </div>
 
-         <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-         <script src="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.js"></script>
+         <script src="js/vendor/jquery.js"></script>
+         <script src="js/vendor/foundation.js"></script>
          <script>
           $(document).foundation();
+          $(document).ready(function(){
+                            var xhttp = new XMLHttpRequest();
+                            xhttp.open("GET", "php/GetEnfermedades.php", false);
+                            xhttp.send();
+                            var val = xhttp.responseText;
+                            var selectList = document.getElementById('enfermedades');    
+
+                            var jsonData = JSON.parse(val);
+
+                            for (var i in jsonData) {
+                              var option = document.createElement('option');
+                              //console.log(i);
+                              if(i>0){
+                              option.value = jsonData[i][0];
+                              option.text = jsonData[i][1];
+                              selectList.appendChild(option);
+                            }
+                              
+                            }
+
+                            var mhttp = new XMLHttpRequest();
+                            mhttp.open("GET", "php/GetSintoma.php", false);
+                            mhttp.send();
+                            var val = mhttp.responseText;
+                            var selectList = document.getElementById('sintoma');    
+
+                            var jsonData = JSON.parse(val);
+
+                            for (var i in jsonData) {
+                              var option = document.createElement('option');
+                              //console.log(i);
+                              if(i>0){
+                              option.value = jsonData[i][0];
+                              option.text = jsonData[i][1];
+                              selectList.appendChild(option);
+                            }
+                              
+                            }
+
+          });
+
+          function insert(){
+                  var e = document.getElementById('enfermedades'); 
+                  var enfermedad = e.options[e.selectedIndex].value;
+                  var m = document.getElementById('sintoma');
+                  var opciones =m.options;
+                  var sintomas="";
+                  for(i=0;i<opciones.length;i++){
+                              if (opciones[i].selected == true ) {
+                                if(sintomas=="")
+                                {
+                                  sintomas=opciones[i].value;
+                                }
+                                else
+                                  {sintomas +=","+opciones[i].value;}
+                           }
+                  }
+                  console.log(sintomas);
+                  if (m==0 || enfermedad == 0){ 
+                      document.getElementById("demo").innerHTML = "Debe llenar las casillas";
+                      return;
+                  } else {
+                      var xmlhttp = new XMLHttpRequest();
+                      xmlhttp.onreadystatechange = function() {
+                          if (this.readyState == 4 && this.status == 200) {
+                              document.getElementById("demo").innerHTML = this.responseText;
+                          }
+                      };
+                      xmlhttp.open("GET", "php/InsertarEnferSintoma.php?e="+enfermedad+"&s="+sintomas, true);
+                      xmlhttp.send();
+                  }
+              }
         </script>
       </body>
       </html>  
